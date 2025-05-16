@@ -16,3 +16,7 @@
 [submodule "user-generation1"]
 	path = user-generation1
 	url = git@github.com:cpp-port/user-generation1
+[submodule "graphics3d"]
+	path = graphics3d
+	url = ../windows-lowland-port-graphics3d
+	branch = main
