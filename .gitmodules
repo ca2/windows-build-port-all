@@ -7,9 +7,6 @@
 [submodule "base"]
 	path = base
 	url = ../base-port-windows
-[submodule "graphics3d"]
-	path = graphics3d
-	url = ../graphics3d-port
 [submodule "imaging"]
 	path = imaging
 	url = ../imaging-port
