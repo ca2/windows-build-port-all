@@ -20,3 +20,7 @@
 	path = graphics3d
 	url = ../windows-lowland-port-graphics3d
 	branch = main
+[submodule "database"]
+	path = database
+	url = ../database-port-windows
+	branch = main
