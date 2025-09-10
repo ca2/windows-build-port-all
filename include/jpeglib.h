@@ -1,0 +1,1 @@
+../imaging/jpeg/include/jpeglib.h
