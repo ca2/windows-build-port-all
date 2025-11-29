@@ -1,6 +1,3 @@
-[submodule "common-port-windows"]
-	path = common-port-windows
-	url = ../common-port-windows
 [submodule "common"]
 	path = common
 	url = ../common-port
