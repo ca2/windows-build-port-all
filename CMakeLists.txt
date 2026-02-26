@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(port)
 
+set(ZLIB_INCLUDE_DIR "")
 
 if(INCLUDE_AUDIO)
 
