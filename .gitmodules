@@ -21,3 +21,6 @@
 	path = database
 	url = ../database-port-windows
 	branch = main
+[submodule "audio"]
+	path = audio
+	url = ../port-audio
