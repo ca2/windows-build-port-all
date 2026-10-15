@@ -59,7 +59,28 @@ add_custom_target(port_headers
     COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${freetype_binary}/include/freetype/config/ftconfig.h" "${freetype_binary}/include/freetype/config/ftoption.h" "${port_stage}/include/freetype/config"
     COMMENT "Staging port headers"
     VERBATIM)
-add_custom_target(port_all DEPENDS ${port_components} port_headers)
+# Track development-runtime copies as build outputs so a missing/stale DLL is
+# restored even when its library target itself needs no rebuild.
+set(port_runtime_outputs "")
+foreach(component IN LISTS port_components)
+    set(runtime_dll "${EXECUTABLE_OUTPUT_PATH}/${component}.dll")
+    add_custom_command(OUTPUT "${runtime_dll}"
+        COMMAND "${CMAKE_COMMAND}" -E make_directory "${EXECUTABLE_OUTPUT_PATH}"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "$<TARGET_FILE:${component}>" "${runtime_dll}"
+        COMMAND "${CMAKE_COMMAND}"
+            "-DSOURCE_FILE=$<TARGET_FILE:${component}>"
+            "-DDESTINATION=${CA2_REACTOS_DEPLOY_DIRECTORY}"
+            "-DOBJCOPY=${CMAKE_OBJCOPY}"
+            -P "${CMAKE_SOURCE_DIR}/tools/reactos-import-audit/deployment-copy.cmake"
+        DEPENDS ${component}
+        COMMENT "Staging ${component}.dll beside the applications"
+        VERBATIM)
+    add_custom_target(port_runtime_${component} DEPENDS "${runtime_dll}")
+    list(APPEND port_runtime_outputs "${runtime_dll}")
+endforeach()
+add_custom_target(port_runtime DEPENDS ${port_runtime_outputs})
+add_custom_target(port_all DEPENDS ${port_components} port_headers port_runtime)
 # Preserve convenient component target names used by CLion profiles/scripts.
 foreach(component IN ITEMS pcre sqlite unac idn zlib archive)
     add_custom_target(port_${component} DEPENDS ${component} port_headers)

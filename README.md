@@ -18,6 +18,12 @@ and `third/library`. `port_all` also copies public/generated headers into
 `third/include`. `PORT_STORAGE_ROOT` overrides the directory above the
 configuration folders.
 
+`port_all` also stages the port DLLs beside development executables in the
+build's `output` directory. Individual `port_runtime_<component>` targets
+restore missing or stale runtime copies without rebuilding unchanged libraries.
+The PCRE2 wrapper depends on `port_runtime_pcre` because its DLL imports
+`pcre.dll`, which must be discoverable by the native loader.
+
 Applications link the real port targets, so CMake builds and updates their
 required port libraries automatically. There are no separate ExternalProject
 configure/build/install steps. Unrelated port libraries remain excluded from
