@@ -1,12 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
-project(reactos_idn C)
+project(reactos_pcre C)
 set(CMAKE_C_STANDARD 99)
-set(idn_source "${WORKSPACE}/port/base/idn")
-set(iconv_source "${WORKSPACE}/port/base/iconv")
+set(pcre_source "${WORKSPACE}/port/base/pcre")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/config.h" "#pragma once\n#include <stddef.h>\n#include <stdint.h>\n#define _(text) (text)\nchar *str_iconv(const char *, const char *, const char *);\n#define HAVE_ICONV 1\n#define ICONV_CONST\n#define HAVE_STDINT_H 1\n#define HAVE_STRING_H 1\n#define HAVE_STDLIB_H 1\n#define HAVE_LOCALE_H 1\n#define c_strcasecmp _stricmp\n#define c_strncasecmp _strnicmp\n#define _GL_ATTRIBUTE_PURE\n#define _GL_ATTRIBUTE_CONST\n")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/configmake.h" "#define LIBDIR \".\"\n")
-add_library(iconv SHARED "${iconv_source}/lib/iconv.c" "${iconv_source}/libcharset/lib/localcharset.c")
-target_include_directories(iconv PRIVATE "${CMAKE_CURRENT_BINARY_DIR}" "${iconv_source}/include" "${iconv_source}/libcharset/include")
+target_include_directories(iconv PRIVATE "${CMAKE_CURRENT_BINARY_DIR}" "${iconv_source}/include")
 set(idn_sources idn-free.c idna.c nfkc.c pr29.c profiles.c punycode.c rfc3454.c
  strerror-idna.c strerror-pr29.c strerror-punycode.c strerror-stringprep.c
  strerror-tld.c stringprep.c tld.c tlds.c toutf8.c gl/striconv.c)

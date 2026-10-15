@@ -12,10 +12,17 @@ foreach(feature IN ITEMS WERROR INSTALL TEST TAR CPIO CAT UNZIP OPENSSL MBEDTLS
 endforeach()
 add_compile_definitions(__REACTOS__ NTDDI_VERSION=0x05010000 _WIN32_WINNT=0x0501 WINVER=0x0501)
 add_subdirectory("${PORT_SOURCE_DIR}" upstream)
+# Generate an outer copy rather than modifying the vendored implementation.
+file(READ "${PORT_SOURCE_DIR}/libarchive/archive_windows.c" windows_source)
+string(REPLACE "_wsopen_s" "ca2_wsopen_s" windows_source "${windows_source}")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/archive_windows_compat.c"
+    "#include \"${CMAKE_CURRENT_SOURCE_DIR}/archive_wsopen_compat.h\"\n${windows_source}")
 foreach(archive_target IN ITEMS archive archive_static)
     get_target_property(archive_sources ${archive_target} SOURCES)
     list(FILTER archive_sources EXCLUDE REGEX "(^|/)archive_random\\.c$")
+    list(FILTER archive_sources EXCLUDE REGEX "(^|/)archive_windows\\.c$")
     set_property(TARGET ${archive_target} PROPERTY SOURCES ${archive_sources})
+    target_sources(${archive_target} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/archive_windows_compat.c")
     target_sources(${archive_target} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/archive_random.c")
     target_include_directories(${archive_target} PRIVATE "${PORT_SOURCE_DIR}/libarchive")
     get_target_property(archive_libraries ${archive_target} LINK_LIBRARIES)

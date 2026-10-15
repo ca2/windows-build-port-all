@@ -9,6 +9,13 @@ if(MINGW AND CMAKE_SIZEOF_VOID_P EQUAL 4
     include(mingw.cmake)
 endif()
 
+if(__REACTOS__ AND NOT MINGW)
+
+   add_subdirectory(base/idn)
+
+endif()
+
+
 if(INCLUDE_AUDIO)
 
     add_subdirectory(base/id3lib)

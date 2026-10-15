@@ -7,15 +7,18 @@ the default build and applications do not build them automatically.
 The profile's configuration selects the output directory:
 
 ```
-../operating_system/storage-windows/Win32/Debug/
-../operating_system/storage-windows/Win32/Release/
+../operating_system/storage-windows/Win32/Debug/third/
+../operating_system/storage-windows/Win32/Release/third/
 ```
 
-Each configuration contains `binary` (DLLs), `library` (MinGW `.dll.a` import
+Each configuration’s `third` folder contains `binary` (DLLs), `library` (MinGW `.dll.a` import
 libraries), and `include` (public headers). `PORT_STORAGE_ROOT` can override
 the directory above the configuration folders.
 
-Currently `port_all` builds zlib and libarchive. Libarchive supports zlib
+Currently `port_all` builds zlib, libarchive, FreeType, Pixman, libpng, and Cairo.
+Cairo supports image/PNG, PDF, PS, SVG, FreeType fonts, and Win32 rendering.
+The MinGW adapter disables the GL/WGL backends and uses portable Pixman paths.
+Graphics adapters and generated headers stay outside the inner repositories. Libarchive supports zlib
 compression; optional compression, XML, iconv, and crypto dependencies are
 disabled. Windows CNG is disabled to avoid requiring `bcrypt.dll` on XP.
 
