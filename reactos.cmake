@@ -20,6 +20,7 @@ endfunction()
 
 ca2_add_port(base/iconv)
 ca2_add_port(base/idn)
+ca2_add_port(base/mpg123)
 ca2_add_port(base/zlib)
 ca2_add_port(base/archive)
 ca2_add_port(base/unac)
@@ -30,7 +31,9 @@ ca2_add_port(graphics/freetype)
 ca2_add_port(graphics/pixman)
 ca2_add_port(graphics/cairo)
 
-set(port_components iconv idn zlib archive unac sqlite pcre png freetype pixman cairo)
+include("${CMAKE_CURRENT_LIST_DIR}/reactos-freeimage.cmake")
+
+set(port_components port_jpeg port_webp port_jxr port_openexr port_openjpeg port_tiff4 port_rawlite port_freeimage iconv idn zlib archive unac sqlite pcre png freetype pixman cairo)
 foreach(component IN LISTS port_components)
     set_target_properties(${component} PROPERTIES
         PREFIX "" DEBUG_POSTFIX ""
@@ -99,3 +102,7 @@ foreach(openssl_component IN ITEMS crypto ssl)
     endforeach()
 endforeach()
 set_property(TARGET libssl PROPERTY INTERFACE_LINK_LIBRARIES libcrypto)
+
+if(INCLUDE_AUDIO)
+    include(reactos-ffmpeg.cmake)
+endif()
