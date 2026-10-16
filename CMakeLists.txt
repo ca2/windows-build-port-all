@@ -3,9 +3,7 @@ project(port)
 
 set(ZLIB_INCLUDE_DIR "")
 
-if(__REACTOS__ AND MINGW)
-    include(reactos.cmake)
-endif()
+include(port.cmake)
 
 if(__REACTOS__ AND NOT MINGW)
 
@@ -26,3 +24,7 @@ if(INCLUDE_OPENGL)
     add_subdirectory(graphics3d/glad)
 
 endif()
+
+
+
+add_subdirectory(user-generation1/redshift)

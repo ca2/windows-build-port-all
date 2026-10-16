@@ -31,7 +31,7 @@ ca2_add_port(graphics/freetype)
 ca2_add_port(graphics/pixman)
 ca2_add_port(graphics/cairo)
 
-include("${CMAKE_CURRENT_LIST_DIR}/reactos-freeimage.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/port-freeimage.cmake")
 
 set(port_components port_jpeg port_webp port_jxr port_openexr port_openjpeg port_tiff4 port_rawlite port_freeimage iconv idn zlib archive unac sqlite pcre png freetype pixman cairo)
 foreach(component IN LISTS port_components)
@@ -90,19 +90,10 @@ foreach(component IN ITEMS pcre sqlite unac idn zlib archive)
 endforeach()
 add_custom_target(port_graphics DEPENDS png freetype pixman cairo port_headers)
 
-# Keep the ca2 library names while linking the MinGW OpenSSL import libraries.
-foreach(openssl_component IN ITEMS crypto ssl)
-    add_library(lib${openssl_component} SHARED IMPORTED GLOBAL)
-    foreach(port_config IN ITEMS Debug Release RelWithDebInfo MinSizeRel)
-        string(TOUPPER "${port_config}" port_config_upper)
-        set_property(TARGET lib${openssl_component} APPEND PROPERTY IMPORTED_CONFIGURATIONS "${port_config}")
-        set_target_properties(lib${openssl_component} PROPERTIES
-            "IMPORTED_IMPLIB_${port_config_upper}" "${PORT_STORAGE_ROOT}/${port_config}/binary/lib/lib${openssl_component}.dll.a"
-            "IMPORTED_LOCATION_${port_config_upper}" "${PORT_STORAGE_ROOT}/${port_config}/binary/bin/lib${openssl_component}-3.dll")
-    endforeach()
-endforeach()
-set_property(TARGET libssl PROPERTY INTERFACE_LINK_LIBRARIES libcrypto)
+# Build the SDK and publish libcrypto/libssl instead of assuming prebuilt files exist.
+include("${CMAKE_SOURCE_DIR}/tools/openssl/windows-build-all.cmake")
 
 if(INCLUDE_AUDIO)
-    include(reactos-ffmpeg.cmake)
+    include("${CMAKE_SOURCE_DIR}/tools/ffmpeg/windows-build-all.cmake")
+    include(port-fluidsynth.cmake)
 endif()
