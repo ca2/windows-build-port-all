@@ -24,3 +24,7 @@
 [submodule "audio"]
 	path = audio
 	url = ../port-audio
+[submodule "external_build"]
+	path = external_build
+	url = ../windows-port-external_build
+	branch = main
