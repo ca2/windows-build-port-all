@@ -75,7 +75,7 @@ foreach(component IN LISTS port_components)
             "-DSOURCE_FILE=$<TARGET_FILE:${component}>"
             "-DDESTINATION=${CA2_REACTOS_DEPLOY_DIRECTORY}"
             "-DOBJCOPY=${CMAKE_OBJCOPY}"
-            -P "${CMAKE_SOURCE_DIR}/tools/reactos-import-audit/deployment-copy.cmake"
+            -P "${CMAKE_SOURCE_DIR}/operating_system/operating_system-windows/tools/reactos-import-audit/deployment-copy.cmake"
         DEPENDS ${component}
         COMMENT "Staging ${component}.dll beside the applications"
         VERBATIM)
@@ -91,9 +91,9 @@ endforeach()
 add_custom_target(port_graphics DEPENDS png freetype pixman cairo port_headers)
 
 # Build the SDK and publish libcrypto/libssl instead of assuming prebuilt files exist.
-include("${CMAKE_SOURCE_DIR}/tools/openssl/windows-build-all.cmake")
+include("${CMAKE_SOURCE_DIR}/operating_system/operating_system-windows/tools/openssl/windows-build-all.cmake")
 
 if(INCLUDE_AUDIO)
-    include("${CMAKE_SOURCE_DIR}/tools/ffmpeg/windows-build-all.cmake")
+    include("${CMAKE_SOURCE_DIR}/operating_system/operating_system-windows/tools/ffmpeg/windows-build-all.cmake")
     include(port-fluidsynth.cmake)
 endif()

@@ -18,7 +18,7 @@ add_custom_target(port_runtime_fluidsynth
         "-DSOURCE_FILE=$<TARGET_FILE:libfluidsynth>"
         "-DDESTINATION=${CA2_REACTOS_DEPLOY_DIRECTORY}"
         "-DOBJCOPY=${CMAKE_OBJCOPY}"
-        -P "${CMAKE_SOURCE_DIR}/tools/reactos-import-audit/deployment-copy.cmake"
+        -P "${CMAKE_SOURCE_DIR}/operating_system/operating_system-windows/tools/reactos-import-audit/deployment-copy.cmake"
     DEPENDS libfluidsynth
     COMMENT "Staging FluidSynth beside the applications"
     VERBATIM)
