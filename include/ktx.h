@@ -1,1 +1,1 @@
-../graphics3d/ktx/KTX-Software/include/ktx.h
+../graphics3d/ktx/include/ktx.h
