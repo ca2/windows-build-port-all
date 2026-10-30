@@ -13,10 +13,6 @@
 [submodule "user-generation1"]
 	path = user-generation1
 	url = git@github.com:cpp-port/user-generation1
-[submodule "graphics3d"]
-	path = graphics3d
-	url = ../windows-lowland-port-graphics3d
-	branch = main
 [submodule "database"]
 	path = database
 	url = ../database-port-windows
@@ -27,4 +23,8 @@
 [submodule "external_build"]
 	path = external_build
 	url = ../windows-port-external_build
+	branch = main
+[submodule "graphics3d"]
+	path = graphics3d
+	url = ../windows-port-graphics3d
 	branch = main
