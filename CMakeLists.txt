@@ -16,6 +16,17 @@ if(INCLUDE_AUDIO)
 
     add_subdirectory(base/id3lib)
 
+    if(NOT __REACTOS__)
+        get_target_property(id3lib_zlib_binary zlib BINARY_DIR)
+        foreach(id3lib_target id3lib static_id3lib)
+            if(TARGET ${id3lib_target})
+                target_include_directories(${id3lib_target} BEFORE PRIVATE
+                    "${CMAKE_CURRENT_SOURCE_DIR}/base/zlib/include" "${id3lib_zlib_binary}")
+                target_link_libraries(${id3lib_target} PRIVATE zlib)
+            endif()
+        endforeach()
+    endif()
+
 endif()
 
 

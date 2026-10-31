@@ -33,14 +33,103 @@ ca2_add_port(graphics/cairo)
 
 include("${CMAKE_CURRENT_LIST_DIR}/port-freeimage.cmake")
 
-set(port_components port_jpeg port_webp port_jxr port_openexr port_openjpeg port_tiff4 port_rawlite port_freeimage iconv idn zlib archive unac sqlite pcre png freetype pixman cairo)
+set(port_components port_jpeg port_webp port_jxr port_openexr port_openjpeg port_tiff4 port_rawlite port_freeimage iconv idn zlib archive unac sqlite pcre port_png freetype pixman cairo)
 foreach(component IN LISTS port_components)
     set_target_properties(${component} PROPERTIES
         PREFIX "" DEBUG_POSTFIX ""
         RUNTIME_OUTPUT_DIRECTORY "${port_stage}/binary"
         ARCHIVE_OUTPUT_DIRECTORY "${port_stage}/library")
-    target_compile_definitions(${component} PRIVATE __REACTOS__ _WIN32_WINNT=0x0501 WINVER=0x0501)
+    if(__REACTOS__)
+        target_compile_definitions(${component} PRIVATE __REACTOS__ _WIN32_WINNT=0x0501 WINVER=0x0501)
+    endif()
 endforeach()
+
+if(NOT __REACTOS__)
+    get_target_property(pixman_config_directory pixman BINARY_DIR)
+    set(PIXMAN_VERSION_MAJOR 0)
+    set(PIXMAN_VERSION_MINOR 40)
+    set(PIXMAN_VERSION_MICRO 0)
+    file(MAKE_DIRECTORY "${pixman_config_directory}/generated/pixman")
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/graphics/pixman/pixman/pixman-version.h.in"
+                   "${pixman_config_directory}/generated/pixman/pixman-version.h" @ONLY)
+    foreach(pixman_target pixman static_pixman)
+        if(TARGET ${pixman_target})
+            target_include_directories(${pixman_target} BEFORE PRIVATE
+                "${pixman_config_directory}/generated" "${CMAKE_CURRENT_SOURCE_DIR}/graphics/pixman/include")
+        endif()
+    endforeach()
+    get_target_property(zlib_config_directory zlib BINARY_DIR)
+    get_target_property(cairo_config_directory cairo BINARY_DIR)
+    file(GLOB cairo_headers CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/graphics/cairo/include/cairo/*.h")
+    foreach(cairo_header IN LISTS cairo_headers)
+        get_filename_component(cairo_header_name "${cairo_header}" NAME)
+        configure_file("${cairo_header}" "${cairo_config_directory}/generated/cairo/${cairo_header_name}" COPYONLY)
+    endforeach()
+    foreach(cairo_target cairo static_cairo)
+        if(TARGET ${cairo_target})
+            target_include_directories(${cairo_target} BEFORE PRIVATE
+                "${cairo_config_directory}/generated"
+                "${CMAKE_CURRENT_SOURCE_DIR}/graphics/cairo/include"
+                "${CMAKE_CURRENT_SOURCE_DIR}/graphics/pixman/include"
+                "${CMAKE_CURRENT_SOURCE_DIR}/graphics/pixman/include/pixman"
+                "${pixman_config_directory}/generated"
+                "${CMAKE_CURRENT_SOURCE_DIR}/base/zlib/include" "${zlib_config_directory}"
+                "${port_os_config}/configuration"
+                "${CMAKE_CURRENT_SOURCE_DIR}/graphics/freetype/include"
+                "${CMAKE_CURRENT_SOURCE_DIR}/imaging/port_png/include"
+                "${CMAKE_CURRENT_SOURCE_DIR}/imaging/port_png/include/port_png")
+            target_link_libraries(${cairo_target} PRIVATE zlib pixman freetype port_png)
+        endif()
+    endforeach()
+    get_target_property(zlib_config_directory zlib BINARY_DIR)
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/base/zlib/zconf.h.cmakein"
+                   "${zlib_config_directory}/zconf.h")
+    foreach(zlib_target zlib static_zlib)
+        if(TARGET ${zlib_target})
+            target_include_directories(${zlib_target} BEFORE PRIVATE
+                "${CMAKE_CURRENT_SOURCE_DIR}/base/zlib/include" "${zlib_config_directory}")
+        endif()
+    endforeach()
+    foreach(png_target port_png static_port_png)
+        if(TARGET ${png_target})
+            target_include_directories(${png_target} BEFORE PRIVATE
+                "${port_os_config}/configuration"
+                "${CMAKE_CURRENT_SOURCE_DIR}/base/zlib/include" "${zlib_config_directory}")
+            target_link_libraries(${png_target} zlib)
+        endif()
+    endforeach()
+    foreach(iconv_target iconv static_iconv)
+        if(TARGET ${iconv_target})
+            target_include_directories(${iconv_target} BEFORE PRIVATE
+                "${CMAKE_CURRENT_SOURCE_DIR}/base/iconv/include")
+        endif()
+    endforeach()
+    if(MSVC)
+        # The upstream project hard-codes an import-library location. Let CMake
+        # use the target's configured ARCHIVE_OUTPUT_DIRECTORY instead.
+        get_target_property(iconv_link_options iconv LINK_OPTIONS)
+        if(iconv_link_options)
+            list(FILTER iconv_link_options EXCLUDE REGEX "^/IMPLIB:")
+            set_property(TARGET iconv PROPERTY LINK_OPTIONS "${iconv_link_options}")
+        endif()
+    endif()
+    foreach(unac_target unac static_unac)
+        if(TARGET ${unac_target})
+            target_include_directories(${unac_target} BEFORE PRIVATE
+                "${CMAKE_CURRENT_SOURCE_DIR}/base/iconv/include"
+                "${CMAKE_CURRENT_SOURCE_DIR}/base/unac/include")
+            target_link_libraries(${unac_target} PRIVATE iconv)
+        endif()
+    endforeach()
+    target_link_libraries(archive PRIVATE iconv)
+    if(WIN32)
+        target_sources(archive PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/base/archive/archive/libarchive/archive_crc32.c"
+            "${CMAKE_CURRENT_SOURCE_DIR}/base/archive/archive/libarchive/archive_umask.c")
+        target_compile_definitions(archive PRIVATE ARCHIVE_CRYPTO_WIN)
+        target_link_libraries(archive PRIVATE bcrypt zlib)
+    endif()
+endif()
 
 # Publish headers alongside the DLL/import-library outputs without rerunning a
 # nested configure/build/install process or modifying the source headers.
@@ -67,15 +156,19 @@ add_custom_target(port_headers
 set(port_runtime_outputs "")
 foreach(component IN LISTS port_components)
     set(runtime_dll "${EXECUTABLE_OUTPUT_PATH}/${component}.dll")
+    set(reactos_deploy_command)
+    if(__REACTOS__)
+        list(APPEND reactos_deploy_command COMMAND "${CMAKE_COMMAND}"
+            "-DSOURCE_FILE=$<TARGET_FILE:${component}>"
+            "-DDESTINATION=${CA2_REACTOS_DEPLOY_DIRECTORY}"
+            "-DOBJCOPY=${CMAKE_OBJCOPY}"
+            -P "${CMAKE_SOURCE_DIR}/operating_system/operating_system-windows/tools/reactos-import-audit/deployment-copy.cmake")
+    endif()
     add_custom_command(OUTPUT "${runtime_dll}"
         COMMAND "${CMAKE_COMMAND}" -E make_directory "${EXECUTABLE_OUTPUT_PATH}"
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different
             "$<TARGET_FILE:${component}>" "${runtime_dll}"
-        COMMAND "${CMAKE_COMMAND}"
-            "-DSOURCE_FILE=$<TARGET_FILE:${component}>"
-            "-DDESTINATION=${CA2_REACTOS_DEPLOY_DIRECTORY}"
-            "-DOBJCOPY=${CMAKE_OBJCOPY}"
-            -P "${CMAKE_SOURCE_DIR}/operating_system/operating_system-windows/tools/reactos-import-audit/deployment-copy.cmake"
+        ${reactos_deploy_command}
         DEPENDS ${component}
         COMMENT "Staging ${component}.dll beside the applications"
         VERBATIM)
