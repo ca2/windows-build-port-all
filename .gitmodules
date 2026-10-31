@@ -24,7 +24,3 @@
 	path = external_build
 	url = ../windows-port-external_build
 	branch = main
-[submodule "graphics3d"]
-	path = graphics3d
-	url = ../windows-port-graphics3d
-	branch = main
