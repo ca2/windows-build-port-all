@@ -1,1 +1,0 @@
-../graphics3d/vkvg/include/vkvg-svg.h

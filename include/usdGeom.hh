@@ -1,1 +1,0 @@
-../graphics3d/tinyusdz/tinyusdz/src/usdGeom.hh
