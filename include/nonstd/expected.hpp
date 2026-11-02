@@ -1,1 +1,0 @@
-../../graphics3d/tinyusdz/tinyusdz/src/nonstd/expected.hpp
