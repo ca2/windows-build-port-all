@@ -24,7 +24,7 @@
 	path = external_build
 	url = ../windows-port-external_build
 	branch = main
-[submodule "graphics3d-lowland"]
+[submodule "graphics3d"]
 	path = graphics3d
-	url = ../windows-lowland-port-graphics3d
+	url = git@github.com:ca2/windows-port-graphics3d
 	branch = main
